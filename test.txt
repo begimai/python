@@ -1,0 +1,7 @@
+The problem with not closing the file when you are done with it doesn't
+ have anything to do with CPU time. It is a matter of memory used for io buffers, file handles used 
+(there may be an OS limitation on the number of files open at once), 
+and issues with other programs wanting to use the file at the same time
+The file in the example above actually gets closed - the with open(....) 
+as ins: is a context processor - this means that Python takes care of freeing the resources, 
+according to the "context manager" protocol, which file object adheres to. 

@@ -1,16 +1,16 @@
 counter = 0
-wCounter = 0
 with open('test.txt') as f:
     for line in f:
-        for word in line:
-            if counter < 20: 
-                counter += 1
-                wCounter += 1
-                if word == ' ' or word == '\n':
-                    wCounter = 0
-                if wCounter < 6:
-                    print(word, end='')
+        for word in line.split():
+            if counter < 21:
+                if counter < 15:
+                    print(word[:5], end=' ')
+                    counter += len(word[:5]) + 1
+                else:
+                    temp = 20 - counter
+                    print(word[:temp], end=' ')
+                    counter += len(word[:temp]) + 1
+                    
             else:
+                print()
                 counter = 0
-                wCounter = 0
-                print('')

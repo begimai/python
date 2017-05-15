@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 def refactor(fromFile, file):
     d = {}
     lst = []
@@ -21,139 +23,98 @@ def refactor(fromFile, file):
                     if word.lower() == key.lower():
                         words[i] = d.get(key)
             lst.append(' '.join(words))
-            lst.append('\n')
-
         f.close()
         l.close()
-                
-    with open(fromFile, 'w') as f:
-        for line in lst:
-            if line.strip() != '':
-                f.write(line.strip())
-                f.write('\n')
-        f.close()
-    return
+    return lst
 
-def cleanUp(file):
+def cleanUp(text):  
     lst = []
     tempWord = ''
-    with open(file) as f:
-        for line in f:
-            for char in line:
-                if char.isalpha() or char == '\'':
-                    tempWord += char.lower()
-                elif char == '\n':
-                    tempWord += ' '
-                elif char != ' ':
-                    lst.append(tempWord + ' \n')
+    for line in text:
+        for char in line:
+            if char.isdigit():
+                tempWord += ''
+            elif char.isalpha() or char == '\'':
+                tempWord += char.lower()
+            elif char != ' ':
+                if tempWord.strip() != '':
+                    lst.append(tempWord.strip())
                     tempWord = ''
-                else:
-                    tempWord += ' '
-        f.close()
-    with open(file, 'w') as f:
-        for line in lst:
-            if line.strip() != '':
-                f.write(line.strip())
-                f.write('\n')
-        f.close()
-    return
+            else:
+                tempWord += ' '
+        tempWord += ' '
+    return lst
 
-def removeConjuctionsFromFile(fromFile, file):
+def removeConjuctionsFromFile(text, file):
     lst = []
-    with open(fromFile) as f, open(file) as l:
-        for line in f:
-            line = line.strip()
+    with open(file) as l:
+        for line in text:
             line = ' ' + line + ' '
             l.seek(0, 0)
             for word in l:
-                word = word.strip()
-                word = ' ' + word.lower() + ' '
-                line = line.replace(word , '\n')
+                word = ' ' + word.strip() + ' '
+                line = line.replace(word, '\n')
             lst.append(line)
-        f.close()
         l.close()
-                
-    with open(fromFile, 'w') as f:
-        for line in lst:
-            if line.strip() != '':
-                f.write(line.strip())
-                f.write('\n')
-        f.close()
-    return
+    text = []
+    for line in lst:
+        line = line.strip()
+        line = line.split('\n')
+        for item in line:
+            text.append(item)
+    return text
 
-def removeJoinWordsFromFile(fromFile, file):
+def removeJoinWordsFromFile(text, file):
     lst = []
-    with open(fromFile) as f, open(file) as l:
-        for line in f:
-            line = line.strip()
+    with open(file) as l:
+        for line in text:
             line = ' ' + line + ' '
             l.seek(0, 0)
             for word in l:
                 word = word.strip()
                 word = ' ' + word.lower() + ' '
                 line = line.replace(word, ' ')
-            lst.append(line)
-        f.close()
+            lst.append(line.strip())
         l.close()
-                
-    with open(fromFile, 'w') as f:
-        for line in lst:
-            if line.strip() != '':
-                f.write(line.strip())
-                f.write('\n')
-        f.close()
-    return
+    return lst
 
-def countOccurrences(fromFile):
+def countOccurrences(text):
     d = {}
-    with open(fromFile) as f:
-        for line in f:
-            words = line.split()
-            for word in words:
-                if word in d:
-                    d[word] += 1
-                else:
-                    d[word] = 1
-        for key in d:
-            print(key + ': ' + str(d.get(key)))
-    return
-
-def wordsAfterOthers(fromFile):
-    d = {}
+    d = defaultdict(dict)
     prevWord = ''
-    with open(fromFile) as f:
-        for line in f:
-            words = line.split()
-            for word in words:
-                if prevWord != '':
-                    if prevWord + ' followed by ' + word in d:
-                        d[prevWord + ' followed by ' + word] += 1
+    for line in text:
+        line = line.split(' ')
+        for item in line:
+            if prevWord != '':
+                if prevWord in d:
+                    if item in d[prevWord]:
+                        d[prevWord][item] += 1
                     else:
-                        d[prevWord + ' followed by ' + word] = 1
-                prevWord = word
-
-            prevWord = ''
-        for key in d:
-            print(key + ': ' + str(d.get(key)))
-    return
+                        d[prevWord][item] = 1
+                else:
+                    d[prevWord][item] = 1
+            prevWord = item
+        prevWord = ''
+    for item in d:
+        l = len(d[item].keys())
+        for e in d[item]:
+            print(item, '-', e, ': ' '%.2f' % (d[item][e] / l))
+    return d
 
 #to make I'll to I will
 #short words goes like        you're you are
-refactor('test.txt', 'shorts.txt')
+text = refactor('test.txt', 'shorts.txt')
 
 #to make lowercase + remove non alpha chars
-cleanUp('test.txt')
+text = cleanUp(text)
 
 #to remove conjuctions
 #conjuctions are listed one per a line
-removeConjuctionsFromFile('test.txt', 'conjunctions.txt')
+text = removeConjuctionsFromFile(text, 'conjunctions.txt')
 
 #to remove nums, articles and not
 #join words are listed one per a line
-removeJoinWordsFromFile('test.txt', 'joinWords.txt')
+text = removeJoinWordsFromFile(text, 'joinWords.txt')
 
 #to count occurrence of words
-countOccurrences('test.txt')
-
-#to count words that follow others
-wordsAfterOthers('test.txt')
+countOccurrences(text)
